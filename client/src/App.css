@@ -41,16 +41,24 @@
   position: absolute;
   width: 693px;
   height: 926px;
-  left: -12px;
-  top: -14px;
+  /* left: 753px;
+  top: 51px; */
+  top: 0;
+  left: 0;
+  z-index: 0;
+  
 }
 
 #Asset2 {
-  position: absolute;
-width: 687px;
-height: 860px;
-left: 753px;
-top: 51px;
+  position: fixed;
+  width: 687px;
+  height: 860px;
+  /* left: 753px;
+  top: 51px; */
+  bottom: 0;
+  right: 0;
+  z-index: 0;
+
 }
 #Asset3 {
   position: absolute;
@@ -69,28 +77,29 @@ top: 134px;
 
 #createRoom {
   font-weight: 800;
-  font-family: Avenir;
+  font-family: Helvetica;
   font-size: 32px;
 }
 
 #joinRoom {
   font-weight: 800;
-  font-family: Avenir;
+  font-family: Helvetica;
   font-size: 32px;
 }
 
 #generateButton {
-  margin-top: 30px;
+  margin-top: 10px;
   padding: 10px 40px 10px 40px;
-  font-family: Avenir;
+  font-family: Helvetica;
   font-variant-caps: small-caps;
   font-size: 26px;
   background: #329BCF;
   border-radius: 12px;
+  z-index: 100;
 }
 
 #roomIDField{
-  font-family: Avenir;
+  font-family: Helvetica;
   font-size: 32px;
   background: #ffffff;
   padding: 10px 20px 10px 20px;
@@ -108,4 +117,47 @@ top: 134px;
   border-color: #ffffff;
   color: #ffffff;
   size: 'medium';
+}
+
+#roomIDDisplay{
+  font-weight: 450;
+  font-family: Helvetica;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+#textEffect{
+  width: 100%;
+  margin: 0 auto 0 auto;
+  font-family: 'Lato', sans-serif;
+  font-weight: 1000;
+  line-height: 280px;
+  font-size: 11.5rem;
+  padding: 10px 10px;
+  text-align: center;
+  text-transform: uppercase;
+  text-rendering: optimizeLegibility;
+  color: #67bae9db;
+    letter-spacing: .15em;
+    text-shadow: 
+      -1px -1px 1px #efede3, 
+      0px 1px 0 #2e2e2e, 
+      0px 2px 0 #2c2c2c, 
+      0px 3px 0 #2a2a2a, 
+      0px 4px 0 #282828, 
+      0px 5px 0 #262626, 
+      0px 6px 0 #242424, 
+      0px 7px 0 #222, 
+      0px 8px 0 #202020, 
+      0px 9px 0 #1e1e1e, 
+      0px 10px 0 #1c1c1c, 
+      0px 11px 0 #1a1a1a, 
+      0px 12px 0 #181818, 
+      0px 13px 0 #161616, 
+      0px 14px 0 #141414, 
+      0px 15px 0 #121212,
+      2px 20px 5px rgba(0, 0, 0, 0.9),
+      5px 23px 5px rgba(0, 0, 0, 0.3),
+      8px 27px 8px rgba(0, 0, 0, 0.5),
+      8px 28px 35px rgba(0, 0, 0, 0.9);
 }
