@@ -8,10 +8,9 @@ import {
   Typography,
 } from "@material-ui/core";
 
-// import ClientComponent from "./ClientComponent";
-
+import { CountdownCircleTimer } from "react-countdown-circle-timer";
 import socketIOClient from "socket.io-client";
-// import openSocket from "socket.io-client";
+
 const ENDPOINT = "http://localhost:8000";
 
 function uuidv4() {
@@ -44,6 +43,10 @@ class Main extends Component {
       response: "",
       socketIO: null,
       id: null,
+      highestScore: -1,
+      timerDuration: 60,
+      timerKey: 0,
+      isPressMeButtonDisabled: false,
     };
   }
 
@@ -63,6 +66,14 @@ class Main extends Component {
     return () => this.socketIO.disconnect();
   }
 
+  componentDidUpdate(prevState) {
+    if (prevState.count !== this.state.count) {
+      if (this.state.count > this.state.highestScore) {
+        this.setState({ highestScore: this.state.count });
+      }
+    }
+  }
+
   joinRoom = () => {
     const { room, socketIO } = this.state;
     socketIO.emit("room", room);
@@ -71,12 +82,10 @@ class Main extends Component {
 
   handleButtonPress = () => {
     const { id, count, room, socketIO } = this.state;
-    // this.setState({ count: count+1});
 
     const data = {
-      id: id, 
+      id: id,
       room: room,
-      // message: "Hello World",
       count: parseInt(count) + 1,
       timestamp: Date.now(),
     };
@@ -85,122 +94,172 @@ class Main extends Component {
   };
 
   render() {
-    const {room, count, loadClient, createRoomChecked, joinRoomChecked, roomIdGenerated, startGame, response, socketIO} = this.state;
-    return (<>
-    {/* <Typography variant="h1">Addiction With Extra Steps</Typography> */}
-      {!startGame ? (
-        <>
-          <FormGroup row>
-            <FormControlLabel
-              control={
-                <Checkbox
-                id = "checkbox"
-                  checked={createRoomChecked}
-                  onChange={() => {
-                    if (!createRoomChecked && joinRoomChecked) {
-                      this.setState({joinRoomChecked: !joinRoomChecked});
-                    }
-                    this.setState({createRoomChecked: !createRoomChecked});
-                  }}
-                />
-              }
-              label={<Typography id="createRoom">Create Room</Typography>}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  
-                  checked={joinRoomChecked}
-                  onChange={() => {
-                    if (createRoomChecked && !joinRoomChecked) {
-                      this.setState({createRoomChecked: !createRoomChecked})
-                      // setCreateRoomChecked(!createRoomChecked);
-                    }
-                    this.setState({joinRoomChecked: !joinRoomChecked})
-                    // setJoinRoomChecked(!joinRoomChecked);
-                  }}
-                />
-              }
-              label={<Typography id="joinRoom">Join Room</Typography>}
-            />
-          </FormGroup>
-          {createRoomChecked ? (
-            <>
-              <Button
-                onClick={() => {
-                  this.setState({room: uuidv4()}, () => {
-                    this.setState({roomIdGenerated: true}, () => {
-                      this.joinRoom();
-                      // this.setState({startGame: true});
-                    })
-                  });
-                }}
-                variant="contained"
-                color="primary"
-                id="generateButton"
-              >
-                Generate Room Id
-              </Button>
-            </>
-          ) : null}
-          {joinRoomChecked ? (
-            <>
-              <TextField
-                id="roomIDField"
-                value={room}
-                autoFocus={true}
-                helperText={<Typography id="helpText">Enter Room ID Here...</Typography>}
-                onChange={(event) => {
-                  this.setState({room: event.target.value});
-                  // setRoom(event.target.value);
-                }}
+    const {
+      room,
+      count,
+      createRoomChecked,
+      joinRoomChecked,
+      roomIdGenerated,
+      startGame,
+      highestScore,
+    } = this.state;
+    return (
+      <div>
+        {!startGame ? (
+          <>
+            <FormGroup row>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    id="checkbox"
+                    checked={createRoomChecked}
+                    onChange={() => {
+                      if (!createRoomChecked && joinRoomChecked) {
+                        this.setState({ joinRoomChecked: !joinRoomChecked });
+                      }
+                      this.setState({ createRoomChecked: !createRoomChecked });
+                    }}
+                  />
+                }
+                label={<Typography id="createRoom">Create Room</Typography>}
               />
-              <Button
-                id = "generateButton"
-                onClick={() => {
-                  this.joinRoom();
-                  this.setState({startGame: true})
-                  // setStartGame(true);
-                }}
-                variant="contained"
-                color="primary"
-              >
-                Join Room
-              </Button>
-            </>
-          ) : null}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={joinRoomChecked}
+                    onChange={() => {
+                      if (createRoomChecked && !joinRoomChecked) {
+                        this.setState({
+                          createRoomChecked: !createRoomChecked,
+                        });
+                      }
+                      this.setState({ joinRoomChecked: !joinRoomChecked });
+                    }}
+                  />
+                }
+                label={<Typography id="joinRoom">Join Room</Typography>}
+              />
+            </FormGroup>
+            {createRoomChecked ? (
+              <>
+                <Button
+                  onClick={() => {
+                    this.setState({ room: uuidv4() }, () => {
+                      this.setState({ roomIdGenerated: true }, () => {
+                        this.joinRoom();
+                      });
+                    });
+                  }}
+                  variant="contained"
+                  color="primary"
+                  id="generateButton"
+                >
+                  Generate Room Id
+                </Button>
+              </>
+            ) : null}
+            {joinRoomChecked ? (
+              <>
+                <TextField
+                  id="roomIDField"
+                  value={room}
+                  autoFocus={true}
+                  placeholder={"Enter Room ID Here..."}
+                  onChange={(event) => {
+                    this.setState({ room: event.target.value });
+                  }}
+                />
+                <Button
+                  id="generateButton"
+                  onClick={() => {
+                    this.joinRoom();
+                    this.setState({ startGame: true });
+                  }}
+                  variant="contained"
+                  color="primary"
+                >
+                  Join Room
+                </Button>
+              </>
+            ) : null}
 
-          {roomIdGenerated ? (
-            <>
-              <Typography>{room}</Typography>
-              {/* <TextField
-          value={room}
-          disabled={true}
-        /> */}
+            {roomIdGenerated ? (
+              <>
+                <Typography>{room}</Typography>
               </>
             ) : null}
           </>
         ) : null}
         {startGame ? (
           <>
-            <Typography id = "roomIDDisplay">{`Room Id: ${room}`}</Typography>
-            <Typography variant="h1" id="textEffect">{count}</Typography>
+            <div style={{ position: "absolute", right: "5%", top: "5%" }}>
+              <CountdownCircleTimer
+                key={this.state.timerKey}
+                isPlaying
+                duration={this.state.timerDuration}
+                size={120}
+                colors={[
+                  ["#004777", 0.33],
+                  ["#F7B801", 0.33],
+                  ["#A30000", 0.33],
+                ]}
+                onComplete={(totalElapseTime) => {
+                  console.log("Ended");
+                  this.setState({ isPressMeButtonDisabled: true });
+                  this.state.socketIO.disconnect();
+                }}
+              >
+                {({ remainingTime }) => remainingTime}
+              </CountdownCircleTimer>
+            </div>
+            {this.state.isPressMeButtonDisabled && (
+              <>
+                <div
+                  style={{
+                    // margin: "5%",
+                    // position: 'absolute',
+                    backgroundColor: "red",
+                    borderRadius: 20,
+                    padding: 35,
+                    alignItems: "center",
+                    shadowColor: "#000",
+                    shadowOffset: {
+                      width: 0,
+                      height: 2,
+                    },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 3.84,
+                    elevation: 5,
+                    margin: "5%",
+                  }}
+                >
+                  <Typography variant="h1">GAME OVER</Typography>
+                </div>
+              </>
+            )}
+            <Typography
+              variant="h4"
+              id="score"
+            >{`Highest Score: ${highestScore}`}</Typography>
+            <Typography id="roomIDDisplay">{`Room ID: ${room}`}</Typography>
+            <Typography variant="h1" id="textEffect">
+              {count}
+            </Typography>
             <Button
-              id = "generateButton"
+              id="generateButton"
               type="submit"
               variant="contained"
               color="primary"
+              disabled={this.state.isPressMeButtonDisabled}
               onClick={() => {
                 this.handleButtonPress();
-                // this.setState({count: count+1});
-                // setCount(count + 1);
               }}
             >
               Press Me
             </Button>
           </>
         ) : null}
-      </>
+      </div>
     );
   }
 }
