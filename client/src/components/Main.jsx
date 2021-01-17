@@ -33,6 +33,7 @@ class Main extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      username: "",
       room: "",
       count: 0,
       loadClient: true,
@@ -47,6 +48,8 @@ class Main extends Component {
       timerDuration: 60,
       timerKey: 0,
       isPressMeButtonDisabled: false,
+      users: [],
+      lastEvent: {}
     };
   }
 
@@ -57,7 +60,18 @@ class Main extends Component {
         () => {
           this.state.socketIO.on("count", (data) => {
             console.log(data);
-            this.setState({ count: data });
+            this.setState({ count: data.count, lastEvent: data });
+          });
+
+          this.state.socketIO.on("users", (data) => {
+            console.log(data);
+
+            data.forEach((user) => {
+              if (this.state.users.filter(u => u.uid === user.uid).length === 0) {
+                // console.log(`Adding ${user.uid}`);
+                this.setState({ users: [...this.state.users, user] });
+              }
+            });
           });
         }
       );
@@ -75,8 +89,12 @@ class Main extends Component {
   }
 
   joinRoom = () => {
-    const { room, socketIO } = this.state;
-    socketIO.emit("room", room);
+    const { username, room, id, socketIO } = this.state;
+    socketIO.emit("room", {
+      room: room,
+      username: username,
+      id: id
+    });
     this.setState({ startGame: true });
   };
 
@@ -93,8 +111,15 @@ class Main extends Component {
     socketIO.emit("buttonPress", data);
   };
 
+  // generateLastMoveString = () => {
+  //   const { users, lastEvent } = this.state;
+  //   const lastUser = ;
+  //   return `${users.filter(u => u.uid === lastEvent.lastUid)[0]} increased the count to ${lastEvent.count}!`;
+  // };
+
   render() {
     const {
+      username,
       room,
       count,
       createRoomChecked,
@@ -102,11 +127,23 @@ class Main extends Component {
       roomIdGenerated,
       startGame,
       highestScore,
+      users,
+      lastEvent
     } = this.state;
     return (
       <div>
         {!startGame ? (
           <>
+            <TextField
+              id="usernameField"
+              value={username}
+              autoFocus={true}
+              placeholder="Username"
+              // helperText={<Typography id="helpText">Enter Room ID Here...</Typography>}
+              onChange={(event) => {
+                this.setState({username: event.target.value});
+              }}
+            />
             <FormGroup row>
               <FormControlLabel
                 control={
@@ -209,7 +246,9 @@ class Main extends Component {
                   this.state.socketIO.disconnect();
                 }}
               >
-                {({ remainingTime }) => remainingTime}
+                {({remainingTime}) => {
+                  return (<p style={{color: "white"}}>{remainingTime}</p>)
+                }}
               </CountdownCircleTimer>
             </div>
             {this.state.isPressMeButtonDisabled && (
@@ -242,6 +281,10 @@ class Main extends Component {
               id="score"
             >{`Highest Score: ${highestScore}`}</Typography>
             <Typography id="roomIDDisplay">{`Room ID: ${room}`}</Typography>
+            <Typography>{`This room now has ${users.length} players`}</Typography>
+            { lastEvent?.count > 0 && 
+              <Typography>{`${users.filter(u => u.uid === lastEvent.lastUid)[0]?.name} increased the count to ${lastEvent.count}!`}</Typography>
+            }
             <Typography variant="h1" id="textEffect">
               {count}
             </Typography>

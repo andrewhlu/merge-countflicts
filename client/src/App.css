@@ -108,7 +108,16 @@ top: 134px;
   margin-top: 20px;
   border-radius: 12px;
   z-index: 100;
-  
+}
+
+#usernameField{
+  font-family: Helvetica;
+  font-size: 32px;
+  background: #ffffff;
+  padding: 10px 20px 10px 20px;
+  margin-top: 20px;
+  border-radius: 12px;
+  z-index: 100;
 }
 
 #helpText{
