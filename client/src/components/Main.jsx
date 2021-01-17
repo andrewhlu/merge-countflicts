@@ -29,6 +29,10 @@ function generateUniqueNumber() {
   });
 }
 
+function randomInteger(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 class Main extends Component {
   constructor(props) {
     super(props);
@@ -295,6 +299,7 @@ class Main extends Component {
               color="primary"
               disabled={this.state.isPressMeButtonDisabled}
               onClick={() => {
+                this.setState({ timerDuration: randomInteger(10, 20), timerKey: this.state.timerKey + 1 });
                 this.handleButtonPress();
               }}
             >
