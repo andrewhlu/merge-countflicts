@@ -183,9 +183,10 @@ class Main extends Component {
         ) : null}
         {startGame ? (
           <>
-            <Typography>{`Room Id: ${room}`}</Typography>
-            <Typography variant="h1">{count}</Typography>
+            <Typography id = "roomIDDisplay">{`Room Id: ${room}`}</Typography>
+            <Typography variant="h1" id="textEffect">{count}</Typography>
             <Button
+              id = "generateButton"
               type="submit"
               variant="contained"
               color="primary"
