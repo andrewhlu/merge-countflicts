@@ -20,16 +20,24 @@ const port = process.env.PORT || 8000;
 const pgConfig = {
   user: "cabbage",
   password: process.env.CRDB_PWD,
-  host: "free-tier.gcp-us-central1.cockroachlabs.cloud",
-  database: 'dark-walrus-177.defaultdb',
+  host: "little-mule-8bv.gcp-us-west2.cockroachlabs.cloud",
+  database: 'defaultdb',
   port: 26257,
   ssl: {
-    ca: fs.readFileSync('cc-ca.crt').toString()
+    ca: fs.readFileSync('little-mule-ca.crt').toString()
   }
 };
 
 const pgClient = new pg.Client(pgConfig);
 pgClient.connect();
+
+async function init() {
+  console.log("Setting flag");
+  await pgClient.query("SET CLUSTER SETTING kv.rangefeed.enabled = true;");
+  console.log("Setting flag succeeded!");
+}
+
+init();
 
 const responseArray = [];
 
@@ -89,14 +97,16 @@ io.on("connection", (socket) => {
     socket.join(room);
 
     try {
-      await pgClient.query(`select * from ${room};`);
+      await pgClient.query(`select * from game${room};`);
       console.log(`${room} exists!`);
     } catch (e) {
       if (e?.routine === "NewUndefinedRelationError") {
-        await pgClient.query(`create table ${room} (numPushed integer primary key, name text)`);
+        await pgClient.query(`create table game${room} (numPushed integer primary key, name text)`);
         console.log(`${room} created!`);
       }
     }
+
+    startListener(room);
 
     console.log(`Joined Room ${room}`);
   })
@@ -105,11 +115,11 @@ io.on("connection", (socket) => {
 io.on("connection", (socket) => {
   socket.on("buttonPress", (data) => {
     if (data.room) {
-      const mostRecentButtomPress = responseArray[responseArray.length - 1];
+      const mostRecentButtonPress = responseArray[responseArray.length - 1];
       responseArray.push(data);
       socket.in(data.room).emit(data);
 
-      if ((mostRecentButtomPress) && (data.room === mostRecentButtomPress.room) && (data.timestamp - mostRecentButtomPress.timestamp < 300)) {
+      if ((mostRecentButtonPress) && (data.room === mostRecentButtonPress.room) && (data.timestamp - mostRecentButtonPress.timestamp < 300)) {
         // socket.in(data.room).emit("reset", true);
         socket.emit("reset", true);
         console.log("You done messed up!");
@@ -120,6 +130,18 @@ io.on("connection", (socket) => {
     }
   })
 })
+
+async function startListener(room) {
+  const dbTimestamp = await pgClient.query("select cluster_logical_timestamp() as now;");
+  const now = dbTimestamp.rows[0].now;
+  console.log(now);
+  console.log(`create changefeed for table game${room} with cursor='${now}'`);
+
+  const buttonListener = pgClient.query(new pg.Query(`create changefeed for table game${room} with cursor='${now}'`));
+  buttonListener.on("row", (row) => {
+    console.log(JSON.parse(row.value).after);
+  })
+}
 
 const getApiAndEmit = (socket) => {
   const response = new Date();
