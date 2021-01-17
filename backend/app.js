@@ -54,7 +54,7 @@ async function init() {
 
 init();
 
-const timeElapsedBetweenButtonPresses = 300;
+const timeElapsedBetweenButtonPresses = 1000;
 // const roomCountMap = {};
 // const roomDataMap = {};
 
@@ -112,11 +112,12 @@ io.on("connection", (socket) => {
 
             try {
                 const response = await pgClient.query(`insert into ${tableName} select ${data.count}, '${data.id}', ${data.timestamp} where not exists ` + 
-                        `(select * from ${tableName} where timestamp >= ${data.timestamp - timeElapsedBetweenButtonPresses} or ` + 
-                        `uid in (select uid from ${tableName} order by timestamp desc limit 1));`);
+                        `(select 1 from ${tableName} where timestamp >= ${data.timestamp - timeElapsedBetweenButtonPresses} or ` + 
+                        `(select uid = '${data.id}' from ${tableName} order by timestamp desc limit 1));`);
 
                 if (response.rowCount === 0) {
-                    // The row was not inserted because the timestamp was too close to the previous timestamp OR because you were the last person to push the button
+                    // The row was not inserted because the timestamp was too close to the previous timestamp 
+                    // OR because you were the last person to push the button
                     console.log("ooh too fast there");
                     await truncateTable(data.room);
                 } else {
