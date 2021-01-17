@@ -39,6 +39,33 @@ async function init() {
 
 init();
 
+dotenv.config();
+
+const pgConfig = {
+  user: "cabbage",
+  password: process.env.CRDB_PWD,
+  host: "little-mule-8bv.gcp-us-west2.cockroachlabs.cloud",
+  database: 'defaultdb',
+  port: 26257,
+  ssl: {
+    ca: fs.readFileSync('little-mule-ca.crt').toString()
+  }
+};
+
+
+
+const pgClient = new pg.Client(pgConfig);
+pgClient.connect();
+
+async function init() {
+  console.log("Setting flag");
+  await pgClient.query("SET CLUSTER SETTING kv.rangefeed.enabled = true;");
+  console.log("Setting flag succeeded!");
+}
+
+init();
+
+
 const responseArray = [];
 
 // view engine setup
@@ -78,7 +105,13 @@ const io = new socketIo(server, {
   },
 });
 
+const timeElapsedBetweenButtonPresses = 300;
+// const roomCountMap = {};
+// const roomDataMap = {};
+
 let interval;
+
+// var count = 0;
 
 io.on("connection", (socket) => {
   console.log("New client connected");
@@ -95,41 +128,132 @@ io.on("connection", (socket) => {
 io.on("connection", (socket) => {
   socket.on("room", async (room) => {
     socket.join(room);
-
+    let existingCount;
+    let tableName = `game${room}`;
     try {
-      await pgClient.query(`select * from game${room};`);
-      console.log(`${room} exists!`);
+      await pgClient.query(`select * from ${tableName};`);
+      console.log(`${tableName} exists!`);
+
+      try {
+        existingCount = (await pgClient.query(`select count(*) from ${tableName};`)).rows[0].count;
+        console.log(existingCount);
+        io.sockets.in(room).emit("count", existingCount);
+      } catch (e) {
+        console.error(e);
+      }
     } catch (e) {
+      // console.log("In here");
+      // console.log(e);
       if (e?.routine === "NewUndefinedRelationError") {
-        await pgClient.query(`create table game${room} (numPushed integer primary key, name text)`);
-        console.log(`${room} created!`);
+        // await pgClient.query(`create table ${room} (numPushed integer primary key, name text)`);
+        try {
+          await pgClient.query(
+            `create table ${tableName} (numpushed integer primary key, "uid" text, "timestamp" bigint);`
+          );
+          io.sockets.in(room).emit("count", 0);
+        } catch (e) {
+          // console.log("Here Noe");
+          console.log(e);
+        }
+        console.log(`${tableName} created!`);
       }
     }
-
-    startListener(room);
-
-    console.log(`Joined Room ${room}`);
-  })
-})
+    // startListener(room);
+    console.log(`Joined ${tableName}`);
+  });
+});
 
 io.on("connection", (socket) => {
-  socket.on("buttonPress", (data) => {
-    if (data.room) {
-      const mostRecentButtonPress = responseArray[responseArray.length - 1];
-      responseArray.push(data);
-      socket.in(data.room).emit(data);
+  socket.on("buttonPress", async (data) => {
+    let mostRecentButtomPress;
+    let count;
 
-      if ((mostRecentButtonPress) && (data.room === mostRecentButtonPress.room) && (data.timestamp - mostRecentButtonPress.timestamp < 300)) {
-        // socket.in(data.room).emit("reset", true);
-        socket.emit("reset", true);
-        console.log("You done messed up!");
-      } else {
-        socket.emit("reset", false);
+    if (data.room) {
+      let tableName = `game${data.room}`;
+
+      // Get most recent click
+      try {
+        mostRecentButtomPress = (await pgClient.query(
+          `select * from ${tableName} order by timestamp desc limit 1;`
+        )).rows;
+        console.log(
+          `Retrieved most recently pressed button from ${tableName} table`
+        );
+        console.log(mostRecentButtomPress);
+        console.log(mostRecentButtomPress.length);
+      } catch (e) {
+        console.error(e);
       }
-      console.log(data);
+
+      // Insert new click into db
+      try {
+        await pgClient.query(`insert into ${tableName} values ($1, $2, $3);`, [
+          data.count,
+          data.id,
+          data.timestamp,
+        ]);
+        console.log(`Added Button Object to ${tableName} table`);
+      } catch (e) {
+        // Users prolly messed up, delete all contents of table
+        if (e?.routine === "NewUniquenessConstraintViolationError") {
+          try {
+            await pgClient.query(`truncate ${tableName};`);
+            count = 0;
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      }
+
+      // Get new count
+      try {
+        count = (await pgClient.query(`select count(*) from ${tableName};`)).rows[0].count;
+        console.log(`Retrieved count of ${tableName} table`);
+      } catch (e) {
+        console.error(e);
+      }
+
+      if (
+        (mostRecentButtomPress.length !== 0 &&
+          // data.room === mostRecentButtomPress.room &&
+          data.timestamp - mostRecentButtomPress[0].timestamp <
+            timeElapsedBetweenButtonPresses) ||
+        (mostRecentButtomPress.length !== 0 &&
+          data.id === mostRecentButtomPress[0].uid)
+      ) {
+        // If Users messed up, delete all contents of table
+        try {
+          await pgClient.query(`truncate ${tableName};`);
+          count = 0;
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        ;
+        // If they didn't mess up, emit count
+      }
+      io.sockets.in(data.room).emit("count", count);
+
     }
+  });
+});
+
+async function startListener(room) {
+  const dbTimestamp = await pgClient.query("select cluster_logical_timestamp() as now;");
+  const now = dbTimestamp.rows[0].now;
+  console.log(now);
+  console.log(`create changefeed for table game${room} with cursor='${now}'`);
+
+  const buttonListener = pgClient.query(new pg.Query(`create changefeed for table game${room} with cursor='${now}'`));
+  buttonListener.on("row", (row) => {
+    // Someone inserted something into the database, i.e. someone pushed the button
+    // We now know what the last button pressed was, now emit an event to all the players saying the new button is that value
+    // socket.emit(count, ...);
+    output = JSON.parse(row.value).after;
+    console.log(output)
+    io.sockets.in(room).emit("count", output);
   })
-})
+}
 
 async function startListener(room) {
   const dbTimestamp = await pgClient.query("select cluster_logical_timestamp() as now;");
