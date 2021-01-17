@@ -258,6 +258,7 @@ class Main extends Component {
             <FormControlLabel
               control={
                 <Checkbox
+                id = "checkbox"
                   checked={createRoomChecked}
                   onChange={() => {
                     if (!createRoomChecked && joinRoomChecked) {
@@ -267,11 +268,12 @@ class Main extends Component {
                   }}
                 />
               }
-              label="Create Room"
+              label={<Typography id="createRoom">Create Room</Typography>}
             />
             <FormControlLabel
               control={
                 <Checkbox
+                  
                   checked={joinRoomChecked}
                   onChange={() => {
                     if (createRoomChecked && !joinRoomChecked) {
@@ -283,7 +285,7 @@ class Main extends Component {
                   }}
                 />
               }
-              label="Join Room"
+              label={<Typography id="joinRoom">Join Room</Typography>}
             />
           </FormGroup>
           {createRoomChecked ? (
@@ -299,6 +301,7 @@ class Main extends Component {
                 }}
                 variant="contained"
                 color="primary"
+                id="generateButton"
               >
                 Generate Room Id
               </Button>
@@ -307,15 +310,17 @@ class Main extends Component {
           {joinRoomChecked ? (
             <>
               <TextField
+                id="roomIDField"
                 value={room}
                 autoFocus={true}
-                helperText={"Enter Room Id Here..."}
+                helperText={<Typography id="helpText">Enter Room ID Here...</Typography>}
                 onChange={(event) => {
                   this.setState({room: event.target.value});
                   // setRoom(event.target.value);
                 }}
               />
               <Button
+                id = "generateButton"
                 onClick={() => {
                   this.joinRoom();
                   this.setState({startGame: true})

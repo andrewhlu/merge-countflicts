@@ -14,7 +14,7 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background: linear-gradient(116.8deg, #0083C4 14.56%, #0E00B5 100.34%);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -35,4 +35,77 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+#Asset1 {
+  position: absolute;
+  width: 693px;
+  height: 926px;
+  left: -12px;
+  top: -14px;
+}
+
+#Asset2 {
+  position: absolute;
+width: 687px;
+height: 860px;
+left: 753px;
+top: 51px;
+}
+#Asset3 {
+  position: absolute;
+width: 684px;
+height: 915px;
+left: 0px;
+top: 0px;
+}
+#Asset4 {
+  position: absolute;
+width: 612px;
+height: 766px;
+left: 828px;
+top: 134px;
+}
+
+#createRoom {
+  font-weight: 800;
+  font-family: Avenir;
+  font-size: 32px;
+}
+
+#joinRoom {
+  font-weight: 800;
+  font-family: Avenir;
+  font-size: 32px;
+}
+
+#generateButton {
+  margin-top: 30px;
+  padding: 10px 40px 10px 40px;
+  font-family: Avenir;
+  font-variant-caps: small-caps;
+  font-size: 26px;
+  background: #329BCF;
+  border-radius: 12px;
+}
+
+#roomIDField{
+  font-family: Avenir;
+  font-size: 32px;
+  background: #ffffff;
+  padding: 10px 20px 10px 20px;
+  margin-top: 20px;
+  border-radius: 12px;
+  
+}
+
+#helpText{
+  color:  #ffffff;
+  font-size: 20px;
+}
+
+#checkbox{
+  border-color: #ffffff;
+  color: #ffffff;
+  size: 'medium';
 }
