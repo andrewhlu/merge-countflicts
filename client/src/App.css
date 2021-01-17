@@ -79,12 +79,14 @@ top: 134px;
   font-weight: 800;
   font-family: Helvetica;
   font-size: 32px;
+  z-index: 100;
 }
 
 #joinRoom {
   font-weight: 800;
   font-family: Helvetica;
   font-size: 32px;
+  z-index: 100;
 }
 
 #generateButton {
@@ -105,18 +107,21 @@ top: 134px;
   padding: 10px 20px 10px 20px;
   margin-top: 20px;
   border-radius: 12px;
+  z-index: 100;
   
 }
 
 #helpText{
   color:  #ffffff;
   font-size: 20px;
+  z-index: 100;
 }
 
 #checkbox{
   border-color: #ffffff;
   color: #ffffff;
   size: 'medium';
+  z-index: 100;
 }
 
 #roomIDDisplay{
@@ -124,6 +129,7 @@ top: 134px;
   font-family: Helvetica;
   font-size: 24px;
   margin-bottom: 10px;
+  z-index: 100;
 }
 
 #textEffect{
