@@ -187,7 +187,7 @@ import {
 
 import socketIOClient from "socket.io-client";
 // import openSocket from "socket.io-client";
-const ENDPOINT = "http://localhost:3001";
+const ENDPOINT = "http://localhost:8000";
 
 function uuidv4() {
   return "xxxxxxxx".replace(/[xy]/g, function (c) {

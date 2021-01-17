@@ -15,7 +15,7 @@ dotenv.config();
 const __dirname = path.resolve();
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 8000;
 
 const pgConfig = {
   user: "cabbage",
