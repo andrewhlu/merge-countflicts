@@ -53,6 +53,7 @@ class Main extends Component {
         { socketIO: socketIOClient(ENDPOINT, { transport: ["websocket"] }) },
         () => {
           this.state.socketIO.on("count", (data) => {
+            console.log(data);
             this.setState({ count: data });
           });
         }
@@ -75,7 +76,8 @@ class Main extends Component {
     const data = {
       id: id, 
       room: room,
-      message: "Hello World",
+      // message: "Hello World",
+      count: count,
       timestamp: Date.now(),
     };
     console.log(data);
