@@ -13,8 +13,8 @@ function App() {
       <header className="App-header">
         <Main/>
       </header>
-      <img src={Asset1} id="Asset1"/>
-      <img src={Asset2} id="Asset2"/>
+      {/* <img src={Asset1} id="Asset1"/>
+      <img src={Asset2} id="Asset2"/> */}
       {/* <img src={Asset3} id="Asset3"/>
       <img src={Asset4} id="Asset4"/> */}
       

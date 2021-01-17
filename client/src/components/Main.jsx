@@ -77,7 +77,7 @@ class Main extends Component {
       id: id, 
       room: room,
       // message: "Hello World",
-      count: count,
+      count: parseInt(count) + 1,
       timestamp: Date.now(),
     };
     console.log(data);
